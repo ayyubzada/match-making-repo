@@ -5,6 +5,10 @@ VisualStudioVersion = 17.14.36414.22 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Service", "MatchMaking.Service\MatchMaking.Service.csproj", "{37A629DE-07C7-4F14-946A-A294D8EB2A16}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Worker", "MatchMaking.Worker\MatchMaking.Worker.csproj", "{81EC549F-3A87-47F4-B902-30D3A0B33954}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Shared", "MatchMaking.Shared\MatchMaking.Shared.csproj", "{C52E3CCA-0EA0-449A-A2E3-3CD1820908B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{37A629DE-07C7-4F14-946A-A294D8EB2A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37A629DE-07C7-4F14-946A-A294D8EB2A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37A629DE-07C7-4F14-946A-A294D8EB2A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81EC549F-3A87-47F4-B902-30D3A0B33954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81EC549F-3A87-47F4-B902-30D3A0B33954}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81EC549F-3A87-47F4-B902-30D3A0B33954}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81EC549F-3A87-47F4-B902-30D3A0B33954}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C52E3CCA-0EA0-449A-A2E3-3CD1820908B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C52E3CCA-0EA0-449A-A2E3-3CD1820908B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C52E3CCA-0EA0-449A-A2E3-3CD1820908B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C52E3CCA-0EA0-449A-A2E3-3CD1820908B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
