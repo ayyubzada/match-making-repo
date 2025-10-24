@@ -1,0 +1,7 @@
+@MatchMaking.Service_HostAddress = http://localhost:5208
+@MatchControllerPefix = api/match
+
+GET {{MatchMaking.Service_HostAddress}}/{{MatchControllerPefix}}/ping
+Accept: application/json
+
+###
