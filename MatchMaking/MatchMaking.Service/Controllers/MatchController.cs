@@ -1,41 +1,37 @@
+using MatchMaking.Service.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MatchMaking.Service.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MatchController : ControllerBase
+public class MatchController(IMatchService service) : ControllerBase
 {
-    private readonly ILogger<MatchController> _logger;
-
-    public MatchController(ILogger<MatchController> logger)
-    {
-        _logger = logger;
-    }
+    private readonly IMatchService _service = service;
 
     [HttpGet("Ping")]
     public Task<IActionResult> Ping()
     {
-        _logger.LogInformation("Ping request received.");
         return Task.FromResult<IActionResult>(Ok($"Pong-{Guid.NewGuid()}"));
     }
 
     [HttpPost("Request")]
-    public Task<IActionResult> SearchMatch([FromHeader] string userId)
+    public async Task<IActionResult> SearchMatch([FromHeader] string userId)
     {
-        _logger.LogInformation("SearchMatch request received for UserId: {UserId}", userId);
-        return Task.FromResult<IActionResult>(Ok("Request accepted!"));
+        if (string.IsNullOrWhiteSpace(userId))
+            return BadRequest("UserId required");
+
+        var ok = await _service.RequestMatchAsync(userId);
+        if (!ok)
+            return StatusCode(429, "Too many requests");
+
+        return NoContent();
     }
 
     [HttpGet("Matches")]
-    public Task<IActionResult> GetMatches([FromHeader] string userId)
+    public async Task<IActionResult> GetMatches([FromHeader] string userId)
     {
-        _logger.LogInformation("GetMatches request received for UserId: {UserId}", userId);
-        var matches = new
-        {
-            MatchId = Guid.NewGuid(),
-            UserIds = new[] { "user_1", "user_2", "user_3" },
-        };
-        return Task.FromResult<IActionResult>(Ok(matches));
+        var match = await _service.GetMatchAsync(userId);
+        return match is null ? NotFound() : Ok(match);
     }
 }

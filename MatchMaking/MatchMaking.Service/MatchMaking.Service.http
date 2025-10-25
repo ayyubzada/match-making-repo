@@ -1,4 +1,4 @@
-@MatchMaking.Service_HostAddress = http://localhost:5208
+@MatchMaking.Service_HostAddress = http://localhost:5000
 @MatchControllerPefix = api/match
 
 ### Ping Request
