@@ -1,11 +1,6 @@
 @MatchMaking.Service_HostAddress = http://localhost:5000
 @MatchControllerPefix = api/match
 
-### Ping Request
-GET {{MatchMaking.Service_HostAddress}}/{{MatchControllerPefix}}/ping
-Accept: application/json
-
-
 ### Search Request
 POST {{MatchMaking.Service_HostAddress}}/{{MatchControllerPefix}}/request
 Content-Type: application/json

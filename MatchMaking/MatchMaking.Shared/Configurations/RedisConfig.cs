@@ -1,3 +1,6 @@
 ﻿namespace MatchMaking.Shared.Configurations;
 
-public record RedisConfig(string ConnectionString);
+public record RedisConfig
+{
+    public string ConnectionString { get; init; } = null!;
+}

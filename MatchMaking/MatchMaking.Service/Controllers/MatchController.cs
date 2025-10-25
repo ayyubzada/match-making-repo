@@ -1,3 +1,4 @@
+using MatchMaking.Service.DTOs;
 using MatchMaking.Service.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,29 +10,23 @@ public class MatchController(IMatchService service) : ControllerBase
 {
     private readonly IMatchService _service = service;
 
-    [HttpGet("Ping")]
-    public Task<IActionResult> Ping()
-    {
-        return Task.FromResult<IActionResult>(Ok($"Pong-{Guid.NewGuid()}"));
-    }
-
     [HttpPost("Request")]
     public async Task<IActionResult> SearchMatch([FromHeader] string userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("UserId required");
-
-        var ok = await _service.RequestMatchAsync(userId);
-        if (!ok)
-            return StatusCode(429, "Too many requests");
-
-        return NoContent();
+        var result = await _service.RequestMatchAsync(userId);
+        return result switch
+        {
+            RequestMatchResult.BadRequest => BadRequest("Invalid user ID"),
+            RequestMatchResult.TooManyRequests => StatusCode(429, "Too many requests"),
+            RequestMatchResult.Success => NoContent(),
+            _ => StatusCode(500, "Internal server error")
+        };
     }
 
     [HttpGet("Matches")]
     public async Task<IActionResult> GetMatches([FromHeader] string userId)
     {
-        var match = await _service.GetMatchAsync(userId);
-        return match is null ? NotFound() : Ok(match);
+        var result = await _service.GetMatchAsync(userId);
+        return StatusCode(result.StatusCode, result.StatusCode == 200 ? result.Result : result.ErrorMessage);
     }
 }

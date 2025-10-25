@@ -1,3 +1,6 @@
 ﻿namespace MatchMaking.Shared.Configurations;
 
-public record MatchSettings(int PlayersPerMatch = 3);
+public record MatchSettings
+{
+    public int PlayersPerMatch { get; init; } = 3;
+}

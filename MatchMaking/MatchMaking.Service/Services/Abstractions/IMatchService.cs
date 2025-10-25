@@ -1,9 +1,9 @@
-﻿using MatchMaking.Shared.Contracts;
+﻿using MatchMaking.Service.DTOs;
 
 namespace MatchMaking.Service.Services.Abstractions;
 
 public interface IMatchService
 {
-    Task<bool> RequestMatchAsync(string userId);
-    Task<MatchCompleteMessage?> GetMatchAsync(string userId);
+    Task<RequestMatchResult> RequestMatchAsync(string userId);
+    Task<GetMatchesResult> GetMatchAsync(string userId);
 }

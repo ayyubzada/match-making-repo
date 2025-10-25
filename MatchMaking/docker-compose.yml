@@ -50,7 +50,7 @@ services:
       redis:
         condition: service_started
     ports:
-      - "5000:80"
+      - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Redis__ConnectionString=redis:6379
@@ -63,6 +63,8 @@ services:
     build:
       context: .
       dockerfile: MatchMaking.Worker/Dockerfile
+    deploy:
+      replicas: 2
     depends_on:
       kafka:
         condition: service_healthy
