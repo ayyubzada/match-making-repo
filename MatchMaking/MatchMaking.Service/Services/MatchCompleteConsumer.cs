@@ -19,36 +19,54 @@ public class MatchCompleteConsumer(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using (KafkaAdmin admin = new(_kafkaConfig.BootstrapServers, _logger))
+        try
         {
-            await admin.EnsureTopicExistsAsync(_kafkaConfig.RequestTopic);
-            await admin.EnsureTopicExistsAsync(_kafkaConfig.CompleteTopic);
+            using (KafkaAdmin admin = new(_kafkaConfig.BootstrapServers, _logger))
+            {
+                await admin.EnsureTopicExistsAsync(_kafkaConfig.RequestTopic);
+                await admin.EnsureTopicExistsAsync(_kafkaConfig.CompleteTopic);
+            }
+
+            var consumer = new ConsumerBuilder<Ignore, string>(
+                new ConsumerConfig
+                {
+                    BootstrapServers = _kafkaConfig.BootstrapServers,
+                    GroupId = _kafkaConfig.ServiceGroupId,
+                    AutoOffsetReset = AutoOffsetReset.Earliest
+                }).Build();
+
+            consumer.Subscribe(_kafkaConfig.CompleteTopic);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Waiting for match completions...");
+                try
+                {
+                    var cr = consumer.Consume(stoppingToken);
+                    var match = JsonSerializer.Deserialize<MatchCompleteMessage>(cr.Message.Value);
+                    if (match is not null)
+                        await _repo.SaveMatchAsync(match);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("MatchCompleteConsumer is shutting down.");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error consuming match.complete");
+                }
+            }
+
+            consumer.Close();
+            consumer.Dispose();
+            _logger.LogInformation("MatchCompleteConsumer has stopped.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fatal error in MatchCompleteConsumer");
+            throw;
         }
 
-        var consumer = new ConsumerBuilder<Ignore, string>(
-            new ConsumerConfig
-            {
-                BootstrapServers = _kafkaConfig.BootstrapServers,
-                GroupId = _kafkaConfig.ServiceGroupId,
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            }).Build();
-
-        consumer.Subscribe(_kafkaConfig.CompleteTopic);
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Waiting for match completions...");
-            try
-            {
-                var cr = consumer.Consume(stoppingToken);
-                var match = JsonSerializer.Deserialize<MatchCompleteMessage>(cr.Message.Value);
-                if (match is not null)
-                    await _repo.SaveMatchAsync(match);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error consuming match.complete");
-            }
-        }
     }
 }

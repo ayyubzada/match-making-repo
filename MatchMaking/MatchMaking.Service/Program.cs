@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using MatchMaking.Service.Middlewares;
 using MatchMaking.Service.Persistance;
 using MatchMaking.Service.Services;
 using MatchMaking.Service.Services.Abstractions;
@@ -35,7 +36,9 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
