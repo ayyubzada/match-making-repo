@@ -4,7 +4,7 @@ using MatchMaking.Service.Persistance;
 using MatchMaking.Service.Services;
 using MatchMaking.Service.Services.Abstractions;
 using MatchMaking.Shared.Configurations;
-using MatchMaking.Shared.Repositories.Abstractions;
+using MatchMaking.Shared.Persistance.Abstractions;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,14 +25,16 @@ builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection(nameof(
 builder.Services.AddSingleton<IConnectionMultiplexer>(
     _ => ConnectionMultiplexer.Connect(builder.Configuration["RedisConfig:ConnectionString"]!)
 );
-builder.Services.AddSingleton<IRedisRepository, RedisRepository>();
 builder.Services.AddSingleton<IProducer<Null, string>>(
     _ => new ProducerBuilder<Null, string>(
         new ProducerConfig { BootstrapServers = builder.Configuration["KafkaConfig:BootstrapServers"]! }
     ).Build()
 );
-builder.Services.AddHostedService<MatchCompleteConsumer>();
+
+builder.Services.AddSingleton<IRedisRepository, RedisRepository>();
 builder.Services.AddScoped<IMatchService, MatchService>();
+
+builder.Services.AddHostedService<MatchCompleteConsumer>();
 
 var app = builder.Build();
 

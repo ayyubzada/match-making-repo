@@ -10,4 +10,4 @@ UserId: user_1
 ### Get Matches
 GET {{MatchMaking.Service_HostAddress}}/{{MatchControllerPefix}}/matches
 Accept: application/json
-UserId: user_1
+UserId: user_5

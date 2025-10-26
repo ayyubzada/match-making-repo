@@ -2,8 +2,8 @@ using Confluent.Kafka;
 using MatchMaking.Shared.Configurations;
 using MatchMaking.Shared.Contracts;
 using MatchMaking.Shared.Helpers;
+using MatchMaking.Shared.Persistance.Abstractions;
 using Microsoft.Extensions.Options;
-using StackExchange.Redis;
 using System.Text.Json;
 
 namespace MatchMaking.Worker.Services;
@@ -11,12 +11,12 @@ namespace MatchMaking.Worker.Services;
 public class MatchWorker(
     IOptions<KafkaConfig> kafkaOptions,
     IOptions<MatchSettings> matchSettingsOptions,
-    IConnectionMultiplexer redis,
+    IRedisRepository repo,
     IProducer<Null, string> producer,
     ILogger<MatchWorker> logger) : BackgroundService
 {
     private readonly ILogger<MatchWorker> _logger = logger;
-    private readonly IConnectionMultiplexer _redis = redis;
+    private readonly IRedisRepository _repo = repo;
     private readonly IProducer<Null, string> _producer = producer;
 
     private readonly KafkaConfig _kafkaConfig = kafkaOptions.Value;
@@ -43,35 +43,33 @@ public class MatchWorker(
                 }).Build();
 
             consumer.Subscribe(_kafkaConfig.RequestTopic);
-            var db = _redis.GetDatabase();
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     _logger.LogInformation("Waiting for match requests...");
+
                     var cr = consumer.Consume(stoppingToken);
                     var request = JsonSerializer.Deserialize<MatchRequestMessage>(cr.Message.Value);
-                    if (request == null) continue;
-
-                    await db.SetAddAsync("pending:users", request.UserId);
-                    var count = await db.SetLengthAsync("pending:users");
-                    if (count >= required)
+                    if (request == null)
                     {
-                        var users = (await db.SetMembersAsync("pending:users"))
-                            .Take(required)
-                            .Select(x => x.ToString())
-                            .ToArray();
+                        _logger.LogWarning("Received null or invalid match request message");
+                        continue;
+                    }
 
-                        foreach (var u in users)
-                            await db.SetRemoveAsync("pending:users", u);
+                    _logger.LogInformation("Processing match request for UserId: {UserId}", request.UserId);
 
-                        var match = new MatchCompleteMessage(Guid.NewGuid(), users, DateTimeOffset.UtcNow);
+                    var matchedUsers = await _repo.TryCreateMatchAsync(request.UserId, required);
+                    if (matchedUsers?.Any() ?? false)
+                    {
+                        var match = new MatchCompleteMessage(Guid.NewGuid(), matchedUsers, DateTimeOffset.UtcNow);
                         var json = JsonSerializer.Serialize(match);
+
                         await _producer.ProduceAsync(_kafkaConfig.CompleteTopic,
                             new Message<Null, string> { Value = json });
 
-                        _logger.LogInformation("Created match {MatchId} for [{Users}]", match.MatchId, string.Join(",", users));
+                        _logger.LogInformation("Created match {MatchId} for [{matchedUsers}]", match.MatchId, string.Join(",", matchedUsers));
                     }
                 }
                 catch (OperationCanceledException)

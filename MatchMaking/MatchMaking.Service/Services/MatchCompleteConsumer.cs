@@ -2,7 +2,7 @@
 using MatchMaking.Shared.Configurations;
 using MatchMaking.Shared.Contracts;
 using MatchMaking.Shared.Helpers;
-using MatchMaking.Shared.Repositories.Abstractions;
+using MatchMaking.Shared.Persistance.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 

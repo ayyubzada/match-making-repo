@@ -1,5 +1,7 @@
 using Confluent.Kafka;
+using MatchMaking.Service.Persistance;
 using MatchMaking.Shared.Configurations;
+using MatchMaking.Shared.Persistance.Abstractions;
 using MatchMaking.Worker.Services;
 using StackExchange.Redis;
 
@@ -17,6 +19,9 @@ builder.Services.AddSingleton<IProducer<Null, string>>(
         new ProducerConfig { BootstrapServers = builder.Configuration["KafkaConfig:BootstrapServers"]! }
     ).Build()
 );
+
+builder.Services.AddSingleton<IRedisRepository, RedisRepository>();
+
 builder.Services.AddHostedService<MatchWorker>();
 
 var host = builder.Build();
