@@ -53,10 +53,9 @@ public class MatchService(
             _logger.LogInformation("No match found for userId: {UserId}", userId);
             return new GetMatchesResult(404, "No match found", null);
         }
-        else
-        {
-            _logger.LogInformation("Match found for userId: {UserId}, MatchId: {MatchId}", userId, match.MatchId);
-            return new GetMatchesResult(200, string.Empty, match);
-        }
+
+        _logger.LogInformation("Match found for userId: {UserId}, MatchId: {MatchId}", userId, match.MatchId);
+        var responseDto = new MatchResponseDTO(match.MatchId, match.UserIds);
+        return new GetMatchesResult(200, string.Empty, responseDto);
     }
 }
