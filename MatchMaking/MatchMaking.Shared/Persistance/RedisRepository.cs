@@ -84,7 +84,7 @@ public class RedisRepository(
             local count = redis.call('SCARD', KEYS[1])
             if count >= tonumber(ARGV[2]) then
                 local members = redis.call('SMEMBERS', KEYS[1])
-                local selected = {{}}
+                local selected = {}
                 for i = 1, tonumber(ARGV[2]) do
                     table.insert(selected, members[i])
                     redis.call('SREM', KEYS[1], members[i])
@@ -103,7 +103,7 @@ public class RedisRepository(
             return [];
         }
 
-        var users = ((RedisResult[])result!)
+        var users = ((RedisValue[])result!)
             .Select(r => r.ToString())
             .ToArray();
 
