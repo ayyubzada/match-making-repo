@@ -107,7 +107,7 @@ public class RedisRepository(
             .Select(r => r.ToString())
             .ToArray();
 
-        _logger.LogInformation("Match ready with users: {UserIds}", string.Join(", ", users));
+        _logger.LogInformation("Match ready with users: {0}", string.Join(", ", users));
         return users;
     }
 }
