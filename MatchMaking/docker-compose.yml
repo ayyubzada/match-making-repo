@@ -1,0 +1,83 @@
+version: '3.9'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - matchmaking-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - matchmaking-net
+
+  redis:
+    image: redis:8.2.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - matchmaking-net
+
+  matchmaking.service:
+    image: matchmakingservice
+    build:
+      context: .
+      dockerfile: MatchMaking.Service/Dockerfile
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "5058:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__ConnectionString=redis:6379
+      - Kafka__BootstrapServers=kafka:9092
+    networks:
+      - matchmaking-net
+
+  matchmaking.worker:
+    image: matchmakingworker
+    build:
+      context: .
+      dockerfile: MatchMaking.Worker/Dockerfile
+    deploy:
+      replicas: 2
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__ConnectionString=redis:6379
+      - Kafka__BootstrapServers=kafka:9092
+      - ASPNETCORE_URLS=
+    networks:
+      - matchmaking-net
+
+networks:
+  matchmaking-net:
+    driver: bridge
